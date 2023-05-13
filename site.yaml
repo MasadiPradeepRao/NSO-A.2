@@ -16,7 +16,10 @@
         src: haproxy.cfg.j2
         dest: /etc/haproxy/haproxy.cfg
       become: yes
-
+    - name: Restart haproxy
+      service:
+        name: haproxy
+        state: restarted
 
 - hosts: webservers
   become: yes
@@ -70,9 +73,6 @@
         src: application2.py
         dest: /home/ubuntu/flask-app/venv/app.py
         
-    - name: Restart haproxy
-      service:
-        name: haproxy
-        state: restarted
+
                                                       
                                     
