@@ -39,35 +39,23 @@
           - python3-pip
           - python3-venv
         state: present
-    - name: Create flask-app directory
-      file:
-        path: /home/ubuntu/flask-app
-        state: directory
-    - name: Change directory to flaskapp
-      shell: cd /home/ubuntu/flask-app
-    - name: Install virtualenv package
+    - name: Installing flask
+       pip:
+         executable: pip3
+         name: flask
+         state: latest
+
+    - name: Installing Gunicorn
       apt:
-        name: python3-virtualenv
-        state: present
-    - name: Creating virtual environment
-      file:
-        path: /home/ubuntu/flask-app/venv
-        state: directory
-        mode: "0755"
-    - name: Set up virtual environment
-      pip:
-        name: Flask
-        virtualenv: /home/ubuntu/flask-app/venv
-    - name: Set permissions for virtual environment
-      become: yes
-      become_user: root
-      file:
-        path: /home/ubuntu/flask-app/venv
-        mode: "0755"
-        recurse: yes
+        name: gunicorn
     - name: Copy Flask app file
       copy:
         src: application2.py
         dest: /home/ubuntu/flask-app/venv/app.py
+        owner: ubuntu
+        mode: '0644'
+
+    - name: Running Flask application
+      shell: gunicorn -w 2 -D -b 0.0.0.0:5000 application2:app
 
                                              
