@@ -40,10 +40,10 @@
           - python3-venv
         state: present
     - name: Installing flask
-       pip:
-         executable: pip3
-         name: flask
-         state: latest
+      pip:
+        executable: pip3
+        name: flask
+        state: latest
 
     - name: Installing Gunicorn
       apt:
