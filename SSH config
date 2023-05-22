@@ -1,6 +1,6 @@
 Host bastionET2598
   User ubuntu
-  HostName <ip address>
+  HostName [ip_address]
   IdentityFile ~/.ssh/id_rsa
   UserKnownHostsFile=~/dev/null
   StrictHostKeyChecking no
@@ -8,7 +8,7 @@ Host bastionET2598
 
 Host HAproxy
   User ubuntu
-  HostName <ip address>
+  HostName [ip_address]
   IdentityFile ~/.ssh/id_rsa
   UserKnownHostsFile=~/dev/null
   StrictHostKeyChecking no
@@ -16,21 +16,21 @@ Host HAproxy
 
 Host devA
   User ubuntu
-  HostName <ip address>
+  HostName [ip_address]
   ProxyJump bastionET2598
   StrictHostKeyChecking no
   PasswordAuthentication no
 
 Host devB
   User ubuntu
-  HostName <ip address>
+  HostName [ip_address]
   ProxyJump bastionET2598
   StrictHostKeyChecking no
   PasswordAuthentication no
-
+  
 Host devC
   User ubuntu
-  HostName <ip address>
-  ProxyJump bastionET2598
+  HostName [ip_address]
+  ProxyJump bastionNET2598
   StrictHostKeyChecking no
   PasswordAuthentication no
