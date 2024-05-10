@@ -1,105 +1,75 @@
 ---
 - hosts: all
-  gather_facts: yes
-
+  gather_facts: true
+  
 - hosts: webservers
-  become: yes
+  become: true
   become_method: sudo
+  gather_facts: yes
   tasks:
-    - name: Update apt cache
+    - name: apt update
       apt:
         update_cache: yes
 
-    - name: Install required modules (Python3-pip-venv)
+    - name: install python3, pip3, venv, and git
       apt:
         name:
           - python3
           - python3-pip
           - python3-venv
+          - git
         state: present
-    - name: Update apt cache
-      apt:
-        update_cache: yes
 
-    - name: Install Flask
-      become: true
+    - name: install flask
       pip:
-        executable: pip3
         name: flask
-        state: present
-        
-    - name: Installing gunicorn for flask services
+        state: latest
+
+    - name: Installing Gunicorn
       apt:
         name: gunicorn
+        state: latest
 
-
-    - name: Copy Flask app file
+    - name: Copy flask app to remote server
       copy:
         src: application2.py
         dest: /home/ubuntu/application2.py
         owner: ubuntu
-        mode: '0755'
-        
-    - name: start flask app
-      shell: gunicorn -w 2 -D -b 0.0.0.0:80 application2:app
-      
-    - name: install snmpd
-      apt:
-        name: snmpd
-        state: latest
-        
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-        
-    - name: copy required snmpd config files
-      template:
-        src: snmpd.conf.j2
-        dest: /etc/snmp/snmpd.conf
-        
-    - name: Run snmpd service
-      service:
-        name: snmpd
-        state: restarted
-      
-- hosts: HAproxy
-  become: yes
+        mode: "0755"
+
+    - name: Running Flask application with Gunicorn
+      systemd:
+        name: gunicorn
+        enabled: yes
+        state: started
+        daemon_reload: yes
+        env:
+          FLASK_APP: /home/ubuntu/application2.py
+        executable: /usr/bin/gunicorn
+        args: 
+          - '-w 2'
+          - '-b 0.0.0.0:7000'
+          - 'application2:app'
+
+- name: Configure HAProxy load balancer
+  hosts: HAproxy
+  become: true
   become_method: sudo
   tasks:
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-        
-    - name: Install HAproxy
+    - name: apt update and install HAProxy
       apt:
         name: haproxy
         state: latest
+        update_cache: yes
 
-    - name: Configuring HAproxy
+    - name: Configure HAProxy
       template:
         src: haproxy.cfg.j2
         dest: /etc/haproxy/haproxy.cfg
-      become: yes
-      
-    - name: Installing nginx,snmp and snmp-mibs-downloader
-      apt:
-        update_cache: yes
-        name: [ 'nginx', 'snmp', 'snmp-mibs-downloader' ] 
-        state: latest
-    
-         
-    - name: copy nginx config files
-      template:
-         src: nginx.conf.j2
-         dest: /etc/nginx/nginx.conf
-         
-    - name: nginx start
-      service:
-        name: nginx
-        state: restarted  
-    
+      notify: Restart HAProxy
 
-    - name: Restarting HAproxy
+  handlers:
+    - name: Restart HAProxy
       service:
         name: haproxy
         state: restarted
